@@ -1,3 +1,5 @@
+from tqdm import tqdm
+
 class Generator:
 
     def __init__(self, first_move="R", ):
@@ -22,17 +24,20 @@ class Generator:
     def generate(self,target_iter):
         # generate the sequence of moves to get to the target iteration
         
-        while self.max_iter < target_iter:
-            # i implemented a cache to avoid recalculating the same sequence of moves (useful when we get to thousands of moves and want to keep calculation time relatively fast)
-            last_iter_data = self.cache[self.max_iter] # get the most recent kown iteration 
-            last_iter_mirrored_reversed = self.reverse(self.mirror(last_iter_data)) # reverse and mirror
+        with tqdm(total=target_iter, desc="Generating iterations") as t:
+            t.update(self.max_iter)
+            while self.max_iter < target_iter:
+                # i implemented a cache to avoid recalculating the same sequence of moves (useful when we get to thousands of moves and want to keep calculation time relatively fast)
+                last_iter_data = self.cache[self.max_iter] # get the most recent kown iteration 
+                last_iter_mirrored_reversed = self.reverse(self.mirror(last_iter_data)) # reverse and mirror
 
-            next_iter_data = [] # initialize an empty list of the next iteration
-            next_iter_data.extend(last_iter_data) # start the new iteration by appending the previous iteration
-            next_iter_data.append("R") # add an R
-            next_iter_data.extend(last_iter_mirrored_reversed) # append the mirrored/reversed data to complete the iteration
-            
-            self.cache.append(next_iter_data) # add the new iteration to the cache
-            self.max_iter += 1 # incriment the amount of known iterations
+                next_iter_data = [] # initialize an empty list of the next iteration
+                next_iter_data.extend(last_iter_data) # start the new iteration by appending the previous iteration
+                next_iter_data.append("R") # add an R to start next iteration
+                next_iter_data.extend(last_iter_mirrored_reversed) # append the mirrored/reversed data to complete the iteration
+                
+                self.cache.append(next_iter_data) # add the new iteration to the cache
+                self.max_iter += 1 # incriment the amount of known iterations
+                t.update()
 
         return self.cache[target_iter] # return the target iteration
